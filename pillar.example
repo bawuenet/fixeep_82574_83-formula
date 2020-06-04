@@ -1,0 +1,4 @@
+---
+# Allow the fixeep role to reboot the host if needed
+fixeep_82574_83:
+  reboot: true

@@ -1,0 +1,34 @@
+Packet drop issues may occur in some 82574 and 82583-based adapters. Neither the
+e1000e driver nor the hardware itself show any packets being dropped, however
+packets ARE actually being dropped.
+
+If you encounter packet drop issues in an 82574 or 82583-based adapter, you can
+verify that your adapter needs the fix by using ethtool:
+
+ # ethtool -e eth0
+ Offset          Values
+ ------          ------
+ 0x0000          00 1b 21 51 39 8c 20 0d 46 f7 a1 10 ff ff ff ff
+ 0x0010          29 e6 02 64 6b 02 00 00 86 80 0c 15 ff ff 58 9c
+                                                           ^^
+
+The value at offset 0x001e (58) has bit 1 unset. This enables the problematic
+power saving feature. In this case, the EEPROM needs to read "5a" at offset
+0x001e.
+
+A one-time EEPROM fix is available as a shell script. This script will verify
+that the adapter is applicable to the fix and whether the fix is needed or not.
+If the fix is required, it applies the change to the EEPROM and updates the
+checksum. The user must reboot the system after applying the fix if changes
+were made to the EEPROM.
+
+Example output of the script:
+
+ # bash fixeep-82574_83.sh eth0
+ eth0: is a "82583V Gigabit Network Connection"
+ This fixup is applicable to your hardware
+ executing command: ethtool -E eth0 magic 0x150c8086 offset 0x1e value 0x5a
+ Change made. You *MUST* reboot your machine before changes take effect!
+
+The script can be downloaded at
+[https://sourceforge.net/projects/e1000/files/e1000e%20stable/eeprom_fix_82574_or_82583/fixeep-82574_83.sh]
